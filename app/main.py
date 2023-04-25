@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import os
 
-from flask import Flask, jsonify
-from flask_cors import CORS
+from flask import Flask, jsonify, render_template
+from flaskext.mysql import MySQL
 
 
 def create_app(config=None):
@@ -11,13 +11,22 @@ def create_app(config=None):
     app.config.update(dict(DEBUG=True))
     app.config.update(config or {})
 
-    # Setup cors headers to allow all domains
-    # https://flask-cors.readthedocs.io/en/latest/
-    # CORS(app)
+    app.config['MYSQL_DATABASE_USER'] = 'root'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
+    app.config['MYSQL_DATABASE_DB'] = 'Cantina'
+    app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+    
+    mysql = MySQL()
+    mysql.init_app(app)
+
+    conn = mysql.connect()
 
     @app.route("/")
-    def hello_world():
-        return "Hello World"
+    def buscar_todos_os_lanches():
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM Lanches')
+        lanches = cursor.fetchall()
+        return jsonify(lanches)
 
     return app
 
